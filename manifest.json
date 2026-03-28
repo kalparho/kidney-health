@@ -1,0 +1,18 @@
+{
+  "name": "신장이식환자 건강관리",
+  "short_name": "건강관리",
+  "description": "KDIGO 가이드라인 기반 신장이식 환자 일상 점검 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#00bfa5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

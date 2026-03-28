@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>신장이식환자 건강관리</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00bfa5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="건강관리">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --card-hover: #f5fdfb;
+  --border: #e2eaf0;
+  --text: #1a2e3b;
+  --text-dim: #5a7a8a;
+  --text-muted: #a8c0cc;
+  --accent: #00bfa5;
+  --accent-dim: rgba(0,191,165,0.12);
+  --accent2: #1a3a5c;
+  --accent2-dim: rgba(26,58,92,0.1);
+  --success: #00c853;
+  --success-dim: rgba(0,200,83,0.12);
+  --warning: #ff9800;
+  --warning-dim: rgba(255,152,0,0.12);
+  --danger: #f44336;
+  --danger-dim: rgba(244,67,54,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --tab-height: 72px;
+  --max-w: 480px;
+  --shadow: 0 4px 20px rgba(0,140,130,0.1);
+  --shadow-sm: 0 2px 10px rgba(0,140,130,0.07);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Pretendard', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+.app {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding-bottom: calc(var(--tab-height) + 16px);
+  min-height: 100dvh;
+}
+
+/* iOS safe area */
+.app { padding-top: env(safe-area-inset-top); }
+.bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--tab-height) + env(safe-area-inset-bottom)); }
+.app { padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom) + 16px); }
+
+/* Header - 슬림 다크바 */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: #0d1728;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px 12px;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.header h1 {
+  font-size: 15px; font-weight: 700; letter-spacing: 0.3px;
+  color: #e2f0ff;
+}
+.header .subtitle { display: none; }
+
+/* Tab content */
+.tab-content { display: none; padding: 14px 14px 24px; }
+.tab-content.active { display: block; }
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: var(--max-w);
+  height: var(--tab-height);
+  background: #0d1728;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; z-index: 200;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 5px;
+  background: none; border: none; color: #3a5a78;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active::before {
+  content: ''; position: absolute; top: 0; left: 25%; right: 25%;
+  height: 2px; background: var(--accent);
+  border-radius: 0 0 3px 3px;
+}
+.nav-btn svg { width: 24px; height: 24px; stroke-width: 1.8; }
+
+/* Warning Banner */
+.warning-banner {
+  margin-bottom: 12px; padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600;
+  display: none; align-items: flex-start; gap: 8px;
+  line-height: 1.5;
+}
+.warning-banner.danger { display: flex; background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(244,67,54,0.3); }
+.warning-banner.warn { display: flex; background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(255,152,0,0.3); }
+.warning-banner .icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+/* Progress Card - 다크 네이비, 헤더와 분리 */
+.progress-section {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 12px; padding: 14px 16px;
+  background: #162038;
+  border-radius: var(--radius);
+  border: 1px solid rgba(0,191,165,0.2);
+  box-shadow: 0 4px 16px rgba(10,20,50,0.18);
+}
+.progress-section .progress-info h2 { color: #e8f2ff; }
+.progress-section .progress-info p { color: #5a88aa; }
+.progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring circle { fill: none; stroke-width: 4.5; }
+.progress-ring .bg { stroke: rgba(255,255,255,0.1); }
+.progress-ring .fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.progress-text {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--accent);
+}
+.progress-info h2 { font-size: 16px; font-weight: 700; }
+.progress-info p { font-size: 12px; margin-top: 3px; }
+
+/* Section Card */
+/* ── 오늘 체크 카드: 네이비 다크 스타일 ── */
+.section-card {
+  background: #162038;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(10,20,50,0.22), 0 2px 8px rgba(10,20,50,0.12);
+}
+.section-card .section-header {
+  background: linear-gradient(90deg, rgba(0,191,165,0.13) 0%, rgba(0,191,165,0.04) 60%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.section-header:hover { background: rgba(0,191,165,0.08); }
+.section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 700;
+  color: #e8f2ff;
+}
+.section-title .badge {
+  font-size: 11px; padding: 2px 9px;
+  border-radius: 10px; font-weight: 700;
+}
+.badge-critical { background: rgba(244,67,54,0.25); color: #ff8a80; }
+.badge-normal { background: rgba(0,191,165,0.2); color: #4dd9c8; }
+.section-chevron {
+  font-size: 12px; color: #6a8cac;
+  transition: transform 0.25s;
+}
+.section-card.open .section-chevron { transform: rotate(180deg); }
+.section-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.section-card.open .section-body { max-height: 1200px; }
+.good-food-grid {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.good-food-item { position: relative; }
+.good-food-tag {
+  padding: 4px 10px; border-radius: 20px;
+  background: rgba(0,200,83,0.12); color: #4dd96f;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid rgba(0,200,83,0.25);
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.good-food-tag:hover { background: rgba(0,200,83,0.2); }
+.good-food-item.open .good-food-tag {
+  background: rgba(0,200,83,0.3); color: #80e89a;
+  border-color: rgba(0,200,83,0.5);
+}
+.good-food-detail {
+  display: none; margin-top: 4px;
+  padding: 7px 12px; border-radius: 8px;
+  background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.18);
+  font-size: 11px; color: #7acf8a;
+  line-height: 1.5; white-space: nowrap;
+  animation: fadeIn 0.2s ease;
+}
+.good-food-item.open .good-food-detail { display: block; }
+.caution-food-item { position: relative; }
+.caution-food-tag {
+  padding: 4px 10px; border-radius: 20px;
+  background: rgba(255,152,0,0.12); color: #ffb74d;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid rgba(255,152,0,0.25);
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.caution-food-tag:hover { background: rgba(255,152,0,0.2); }
+.caution-food-item.open .caution-food-tag {
+  background: rgba(255,152,0,0.3); color: #ffd180;
+  border-color: rgba(255,152,0,0.5);
+}
+.caution-food-detail {
+  display: none; margin-top: 4px;
+  padding: 7px 12px; border-radius: 8px;
+  background: rgba(255,152,0,0.08); border: 1px solid rgba(255,152,0,0.18);
+  font-size: 11px; color: #ffc56a;
+  line-height: 1.5; white-space: nowrap;
+  animation: fadeIn 0.2s ease;
+}
+.caution-food-item.open .caution-food-detail { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.section-notice {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; margin: 0;
+  background: rgba(255,107,107,0.12);
+  border-top: 1px solid rgba(255,107,107,0.2);
+  font-size: 12px; font-weight: 600; color: #ff8a80;
+  line-height: 1.4;
+}
+
+/* Check Item */
+.check-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.check-item.critical { border-left: 3px solid #ff6b6b; padding-left: 13px; }
+
+/* Chip selector */
+.chip-group { margin-top: 8px; }
+.chip-label { font-size: 11px; color: #5a88aa; font-weight: 600; margin-bottom: 4px; display: block; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 5px 13px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+  color: #8aaac8; cursor: pointer;
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.chip:hover { background: rgba(255,255,255,0.1); }
+.chip-good { border-color: rgba(76,200,83,0.25); color: #6dcf7a; }
+.chip-warn { border-color: rgba(255,152,0,0.25); color: #ffb74d; }
+.chip-danger { border-color: rgba(255,107,107,0.25); color: #ff8a80; }
+.chip-active.chip-good { background: rgba(0,200,83,0.2); color: #4dd96f; border-color: rgba(0,200,83,0.5); }
+.chip-active.chip-warn { background: rgba(255,152,0,0.2); color: #ffb74d; border-color: rgba(255,152,0,0.5); }
+.chip-active.chip-danger { background: rgba(255,107,107,0.2); color: #ff6b6b; border-color: rgba(255,107,107,0.5); }
+.check-item.disabled { opacity: 0.35; pointer-events: none; }
+.check-box.box-disabled { border-color: rgba(255,255,255,0.12); cursor: default; }
+.check-label.label-disabled { color: #3a5a78; }
+.check-box {
+  width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+  border: 2px solid rgba(255,255,255,0.25); border-radius: 6px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; background: rgba(255,255,255,0.05);
+}
+.check-box.checked {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(0,191,165,0.4);
+}
+.check-box.checked::after {
+  content: ''; width: 6px; height: 10px;
+  border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg); margin-top: -2px;
+}
+.check-content { flex: 1; min-width: 0; }
+.check-label { font-size: 13px; line-height: 1.4; cursor: pointer; color: #d8eaf8; }
+.check-label.done { color: #4a6a88; text-decoration: line-through; }
+.check-sub { font-size: 11px; color: #5a88aa; margin-top: 2px; }
+.check-input-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+/* Inputs */
+.input-group {
+  display: flex; align-items: center; gap: 4px;
+}
+.input-group label { font-size: 11px; color: #5a88aa; white-space: nowrap; }
+/* 카드 내부 input (네이비 카드용) */
+.check-item input[type="number"],
+.check-item input[type="time"] {
+  width: 72px; padding: 6px 8px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-sm); color: #e8f2ff;
+  font-size: 13px; outline: none;
+}
+.check-item input[type="number"]:focus,
+.check-item input[type="time"]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,191,165,0.2); }
+/* 카드 내부 select */
+.check-item select {
+  padding: 6px 8px; background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-sm);
+  color: #e8f2ff; font-size: 13px; outline: none;
+}
+.check-item select:focus { border-color: var(--accent); }
+/* 설정/기타 영역 기본 input */
+input[type="number"], input[type="time"] {
+  width: 72px; padding: 6px 8px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 13px; outline: none;
+}
+input[type="number"]:focus, input[type="time"]:focus { border-color: var(--accent); }
+select {
+  padding: 6px 8px; background: var(--card);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 13px; outline: none;
+}
+select:focus { border-color: var(--accent); }
+
+/* Calendar */
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-header h2 { font-size: 16px; font-weight: 600; }
+.cal-nav {
+  background: none; border: 1px solid var(--border);
+  color: var(--text); width: 32px; height: 32px;
+  border-radius: var(--radius-sm); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.cal-nav:hover { background: var(--card); }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px; margin-bottom: 16px;
+}
+.cal-day-label {
+  text-align: center; font-size: 11px;
+  color: var(--text-dim); padding: 4px 0;
+  font-weight: 600;
+}
+.cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); font-size: 13px;
+  cursor: pointer; position: relative;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.cal-day:hover { background: var(--card); }
+.cal-day.today { border-color: var(--accent); }
+.cal-day.selected { background: var(--accent-dim); border-color: var(--accent); }
+.cal-day.empty { cursor: default; }
+.cal-day .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  margin-top: 2px;
+}
+.dot-complete { background: var(--success); }
+.dot-partial { background: var(--warning); }
+.dot-missed { background: var(--danger); }
+
+/* Calendar Detail */
+.cal-detail {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.cal-detail h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.cal-detail-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+.cal-detail-item:last-child { border-bottom: none; }
+.cal-detail-status { font-size: 12px; font-weight: 600; }
+.status-done { color: var(--success); }
+.status-missed { color: var(--danger); }
+.status-value { color: var(--accent); }
+
+/* Stats */
+.stat-toggle {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.stat-toggle-btn {
+  flex: 1; padding: 8px; text-align: center;
+  background: var(--surface); border: none;
+  color: var(--text-dim); font-size: 13px;
+  cursor: pointer; font-weight: 600;
+}
+.stat-toggle-btn.active { background: var(--accent); color: #fff; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 12px;
+}
+.stat-card h3 { font-size: 12px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat-unit { font-size: 14px; color: var(--text-dim); font-weight: 400; }
+.stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.streak-card {
+  background: linear-gradient(135deg, #00bfa5 0%, #00897b 100%);
+  border: none;
+  border-radius: var(--radius); padding: 20px; text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(0,191,165,0.25);
+}
+.streak-card .streak-value { color: #ffffff; }
+.streak-card .streak-label { color: rgba(255,255,255,0.8); }
+.streak-value { font-size: 48px; font-weight: 800; color: var(--accent); }
+.streak-label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+/* Chart */
+.chart-container {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 12px;
+}
+.chart-container h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.chart-svg { width: 100%; }
+.chart-bar { fill: var(--accent); rx: 3; }
+.chart-bar-warn { fill: var(--warning); rx: 3; }
+.chart-bar-danger { fill: var(--danger); rx: 3; }
+.chart-label { fill: var(--text-dim); font-size: 10px; text-anchor: middle; }
+.chart-value { fill: var(--text-dim); font-size: 9px; text-anchor: middle; }
+
+/* Settings */
+.setting-group {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+}
+.setting-group-title {
+  font-size: 12px; color: var(--text-dim); font-weight: 600;
+  padding: 12px 16px 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.setting-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.04);
+}
+.setting-item label { font-size: 13px; }
+.setting-item input[type="text"], .setting-item input[type="date"] {
+  width: 160px; padding: 6px 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 13px; outline: none; text-align: right;
+}
+.setting-item input:focus { border-color: var(--accent); }
+.btn {
+  display: block; width: 100%; padding: 14px;
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; text-align: center;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-outline {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 300;
+  align-items: center; justify-content: center; padding: 24px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  max-width: 360px; width: 100%;
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.5; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns .btn { flex: 1; padding: 10px; }
+
+/* Guide ref */
+/* Med Settings */
+.med-period-group {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 12px 16px;
+}
+.med-period-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.med-period-label { font-size: 13px; font-weight: 600; color: var(--accent); }
+.med-add-btn {
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(0,191,165,0.2);
+  font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.med-add-btn:hover { background: rgba(0,191,165,0.25); }
+.med-slot-item {
+  display: flex; gap: 6px; align-items: center; margin-bottom: 6px;
+}
+.med-name-input {
+  flex: 1; padding: 6px 8px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 12px; outline: none; min-width: 0;
+}
+.med-name-input:focus { border-color: var(--accent); }
+.med-slot-item input[type="time"] { width: 90px; }
+.med-del-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 6px; border: 1px solid rgba(244,67,54,0.2);
+  background: var(--danger-dim); color: var(--danger);
+  font-size: 12px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+.med-del-btn:hover { background: rgba(244,67,54,0.25); }
+.med-slot-empty {
+  font-size: 12px; color: var(--text-muted);
+  padding: 4px 0; font-style: italic;
+}
+
+.guide-ref {
+  font-size: 11px; color: var(--text-muted);
+  text-align: center; padding: 20px 16px;
+  line-height: 1.6;
+}
+
+/* 진료 예약 카드 */
+.appt-banner {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 12px; padding: 14px 16px;
+  background: linear-gradient(135deg, #3d52d5 0%, #2a3ab8 100%);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(61,82,213,0.35);
+  cursor: pointer; position: relative; overflow: hidden;
+  border: 1px solid rgba(120,140,255,0.2);
+}
+.appt-banner::before {
+  content: '🏥'; position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%); font-size: 32px; opacity: 0.18;
+}
+.appt-dday {
+  font-size: 26px; font-weight: 800; color: #fff;
+  line-height: 1; min-width: 56px;
+}
+.appt-dday span { font-size: 11px; font-weight: 500; display: block; opacity: 0.8; margin-top: 2px; }
+.appt-info { flex: 1; }
+.appt-info-title { font-size: 14px; font-weight: 700; color: #fff; }
+.appt-info-sub { font-size: 12px; color: rgba(200,210,255,0.85); margin-top: 3px; }
+.appt-today {
+  background: linear-gradient(135deg, #e85d26 0%, #c94410 100%);
+  box-shadow: 0 4px 20px rgba(232,93,38,0.4);
+  border-color: rgba(255,160,100,0.2);
+}
+/* 예약 설정 */
+.appt-form {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;
+}
+.appt-form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.appt-form-row:last-child { margin-bottom: 0; }
+.appt-form input, .appt-form select {
+  flex: 1; padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text); font-size: 13px;
+}
+.appt-add-btn {
+  padding: 9px 16px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.appt-list { display: flex; flex-direction: column; gap: 8px; }
+.appt-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.appt-item-dday {
+  min-width: 44px; text-align: center;
+  font-size: 13px; font-weight: 700;
+  color: var(--accent); background: var(--accent-dim);
+  padding: 4px 8px; border-radius: 8px;
+}
+.appt-item-dday.today { color: #ff6b35; background: rgba(255,107,53,0.12); }
+.appt-item-dday.past { color: var(--text-muted); background: var(--bg); }
+.appt-item-info { flex: 1; }
+.appt-item-title { font-size: 13px; font-weight: 600; }
+.appt-item-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.appt-del-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: none; background: var(--danger-dim); color: var(--danger);
+  font-size: 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+/* 캘린더 예약 점 */
+.dot-appt { background: var(--accent2); width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+@media (min-width: 600px) {
+  .app { padding-left: 16px; padding-right: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>신장이식환자 건강관리</h1>
+    <div class="subtitle">KDIGO 가이드라인 기반 일상 점검</div>
+  </div>
+
+  <!-- Tab 1: Today -->
+  <div id="tab-today" class="tab-content active">
+    <div id="warnings"></div>
+    <div class="progress-section">
+      <div class="progress-ring">
+        <svg viewBox="0 0 56 56">
+          <circle class="bg" cx="28" cy="28" r="23"/>
+          <circle class="fg" id="progress-fg" cx="28" cy="28" r="23"
+            stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+        </svg>
+        <div class="progress-text" id="progress-pct">0%</div>
+      </div>
+      <div class="progress-info">
+        <h2 id="today-date" style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap"></h2>
+        <p id="progress-detail">0 / 17 항목 완료</p>
+      </div>
+    </div>
+    <div id="appt-banner"></div>
+    <div id="checklist-sections"></div>
+  </div>
+
+  <!-- Tab 2: Calendar -->
+  <div id="tab-calendar" class="tab-content">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">&#9664;</button>
+      <h2 id="cal-month-label"></h2>
+      <button class="cal-nav" onclick="calNav(1)">&#9654;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-detail" id="cal-detail" style="display:none"></div>
+  </div>
+
+  <!-- Tab 3: Stats -->
+  <div id="tab-stats" class="tab-content">
+    <div class="stat-toggle">
+      <button class="stat-toggle-btn active" onclick="setStatRange('week')">주간</button>
+      <button class="stat-toggle-btn" onclick="setStatRange('month')">월간</button>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+
+  <!-- Tab 4: Settings -->
+  <div id="tab-settings" class="tab-content">
+    <div class="setting-group">
+      <div class="setting-group-title">프로필</div>
+      <div class="setting-item">
+        <label>이름</label>
+        <input type="text" id="set-name" placeholder="이름 입력" onchange="saveProfile()">
+      </div>
+      <div class="setting-item">
+        <label>이식일</label>
+        <input type="date" id="set-txdate" onchange="saveProfile()">
+      </div>
+    </div>
+    <div class="setting-group" id="med-settings"></div>
+    <div class="setting-group">
+      <div class="setting-group-title">진료 예약 관리</div>
+      <div class="appt-form">
+        <div class="appt-form-row">
+          <input type="date" id="appt-date" placeholder="날짜">
+          <select id="appt-type">
+            <option value="외래진료">외래진료</option>
+            <option value="혈액검사">혈액검사</option>
+            <option value="소변검사">소변검사</option>
+            <option value="영상검사">영상검사</option>
+            <option value="약처방">약처방</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="appt-form-row">
+          <input type="text" id="appt-hospital" placeholder="병원명 (예: 서울대병원)">
+          <button class="appt-add-btn" onclick="addAppointment()">+ 추가</button>
+        </div>
+      </div>
+      <div class="appt-list" id="appt-list"></div>
+    </div>
+    <div style="padding: 0 0 12px">
+      <button class="btn btn-primary" onclick="exportData()" style="margin-bottom:8px">데이터 내보내기 (JSON)</button>
+      <button class="btn btn-outline" onclick="showModal('import')" style="margin-bottom:8px">데이터 가져오기</button>
+      <button class="btn btn-danger" onclick="showModal('reset')">모든 데이터 초기화</button>
+    </div>
+    <div class="guide-ref">
+      KDIGO / NKF / AST / 대한신장학회 가이드라인 기반<br>
+      본 앱은 의료 조언을 대체하지 않습니다.<br>
+      모든 의료 결정은 이식 전문의와 상의하세요.
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="today" onclick="switchTab('today')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <span>오늘 체크</span>
+  </button>
+  <button class="nav-btn" data-tab="calendar" onclick="switchTab('calendar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>캘린더</span>
+  </button>
+  <button class="nav-btn" data-tab="stats" onclick="switchTab('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    <span>통계</span>
+  </button>
+  <button class="nav-btn" data-tab="settings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span>설정</span>
+  </button>
+</nav>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-reset">
+  <div class="modal">
+    <h3>데이터 초기화</h3>
+    <p>모든 기록이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?</p>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="hideModal('reset')">취소</button>
+      <button class="btn btn-danger" onclick="resetAllData()">초기화</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <h3>데이터 가져오기</h3>
+    <p>이전에 내보낸 JSON 파일을 선택하세요. 기존 데이터에 병합됩니다.</p>
+    <input type="file" id="import-file" accept=".json" style="margin-bottom:16px;font-size:13px;color:var(--text)">
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="hideModal('import')">취소</button>
+      <button class="btn btn-primary" onclick="importData()">가져오기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== Constants ========== */
+const CIRCUMFERENCE = 2 * Math.PI * 23; // ~144.51
+const STORAGE_PREFIX = 'kt_';
+
+const DEFAULT_MED_SLOTS = {
+  am: [{ name: '타크로리무스', time: '07:30' }, { name: '스테로이드(프레드니솔론)', time: '08:00' }],
+  pm: [{ name: '보충제 (비타민D/엽산/B6/B12)', time: '13:00' }],
+  ev: [{ name: '타크로리무스', time: '19:30' }, { name: 'MPA/MMF(마이코페놀산)', time: '20:00' }]
+};
+const TIME_LABELS = { am: '오전', pm: '오후', ev: '저녁' };
+
+function getMedItems() {
+  const p = loadProfile();
+  const slots = p.medSlots || DEFAULT_MED_SLOTS;
+  const items = [];
+  ['am', 'pm', 'ev'].forEach(period => {
+    (slots[period] || []).forEach((slot, i) => {
+      items.push({
+        id: `med_${period}_${i}`,
+        label: `[${TIME_LABELS[period]}${slots[period].length > 1 ? ' ' + (i+1) + '차' : ''}: ${slot.time}] ${slot.name}`,
+        critical: period !== 'pm'
+      });
+    });
+  });
+  return items;
+}
+
+function isGlucoseDay(ds) {
+  const ref = new Date('2024-01-01T00:00:00').getTime();
+  const target = new Date(ds + 'T00:00:00').getTime();
+  return Math.floor((target - ref) / 86400000) % 3 === 0;
+}
+
+function getChecklistSchema(ds) {
+  const dateStr = ds || todayStr();
+  const glucoseActive = isGlucoseDay(dateStr);
+  const monitoringItems = [
+    { id: 'bp', label: '혈압 측정', critical: true, hasInputs: true, inputType: 'bp', sub: '목표: 130/80 mmHg 미만' },
+    { id: 'glucose', label: '혈당 측정 (3일 간격)', hasInputs: true, inputType: 'glucose', sub: glucoseActive ? '공복 70~130 mg/dL / 식후 2h 180 미만' : '오늘은 측정일이 아닙니다', disabled: !glucoseActive },
+    { id: 'temp', label: '체온 측정', critical: true, hasInputs: true, inputType: 'temp', sub: '38도 이상 시 즉시 연락' },
+    { id: 'weight', label: '체중 측정', hasInputs: true, inputType: 'weight', sub: 'BMI 25 이하 유지 권장' },
+    { id: 'urine', label: '소변량 & 소변색 확인', critical: true, hasInputs: true, inputType: 'urine', sub: '혈뇨/거품뇨 시 즉시 이식팀 연락' },
+    { id: 'txSite', label: '이식부위(우측 하복부) 확인', critical: true, hasInputs: true, inputType: 'txSite' }
+  ];
+
+  return [
+  {
+    id: 'medication', title: '약물 복용', icon: '&#128138;', critical: true,
+    items: getMedItems()
+  },
+  {
+    id: 'monitoring', title: '건강 측정', icon: '&#129657;', critical: true,
+    items: monitoringItems
+  },
+  {
+    id: 'lifestyle', title: '생활습관', icon: '&#127939;',
+    items: [
+      { id: 'exercise', label: '운동', hasInputs: true, inputType: 'minutes', sub: '주 150분 이상 중강도 운동 권장' },
+      { id: 'sleep', label: '수면', hasInputs: true, inputType: 'hours', sub: '7~8시간 권장' },
+      { id: 'sunscreen', label: '자외선 차단제 사용 (SPF50+)', sub: '피부암 예방 필수' }
+    ],
+    notice: [
+      { icon: '&#128683;', text: '절대 금연 — 심혈관 질환 및 이식 신 기능 저하 위험 대폭 상승' },
+      { icon: '&#128683;', text: '음주 금지 — 면역억제제 대사 영향, 간독성 위험' }
+    ]
+  },
+  {
+    id: 'diet', title: '식이 관리', icon: '&#127858;',
+    items: [
+      { id: 'water', label: '수분 섭취 확인', hasInputs: true, inputType: 'liters', sub: '1.5~2L/일 권장' },
+      { id: 'goodFood', label: '권장 식품 섭취 확인', hasInputs: true, inputType: 'goodFood' },
+      { id: 'noForbiddenFood', label: '절대 금지 식품 미섭취 확인', critical: true, sub: '자몽/석류/스타프루트, 생채소/생과일/회/생육류/생굴/생조개 등 어패류' },
+      { id: 'cautionFood', label: '주의/자제 식품 절제 확인', hasInputs: true, inputType: 'cautionFood' }
+    ]
+  }
+  ];
+}
+
+/* ========== State ========== */
+let currentTab = 'today';
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let calSelectedDate = null;
+let statRange = 'week';
+
+/* ========== Helpers ========== */
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dayKey(ds) { return STORAGE_PREFIX + 'day_' + ds; }
+
+function loadDay(ds) {
+  const raw = localStorage.getItem(dayKey(ds));
+  return raw ? JSON.parse(raw) : null;
+}
+function saveDay(ds, data) {
+  data.lastModified = new Date().toISOString();
+  localStorage.setItem(dayKey(ds), JSON.stringify(data));
+}
+function emptyDay(ds) {
+  const data = { date: ds, lastModified: null };
+  getChecklistSchema().forEach(sec => {
+    data[sec.id] = {};
+    sec.items.forEach(it => {
+      data[sec.id][it.id] = { checked: false };
+    });
+  });
+  return data;
+}
+
+function loadProfile() {
+  const raw = localStorage.getItem(STORAGE_PREFIX + 'profile');
+  const defaults = { name: '', transplantDate: '', medSlots: JSON.parse(JSON.stringify(DEFAULT_MED_SLOTS)) };
+  if (!raw) return defaults;
+  const p = JSON.parse(raw);
+  if (!p.medSlots) p.medSlots = JSON.parse(JSON.stringify(DEFAULT_MED_SLOTS));
+  return p;
+}
+function saveProfileData(p) { localStorage.setItem(STORAGE_PREFIX + 'profile', JSON.stringify(p)); }
+
+function getAllDayKeys() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith(STORAGE_PREFIX + 'day_')) keys.push(k.replace(STORAGE_PREFIX + 'day_', ''));
+  }
+  return keys.sort();
+}
+
+/* ========== Tab Switching ========== */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'stats') renderStats();
+  if (tab === 'settings') loadSettings();
+}
+
+/* ========== Tab 1: Today Checklist ========== */
+function getTodayData() {
+  const ds = todayStr();
+  let data = loadDay(ds);
+  if (!data) { data = emptyDay(ds); saveDay(ds, data); }
+  return data;
+}
+
+function countChecked(data, ds) {
+  let total = 0, checked = 0;
+  getChecklistSchema(ds).forEach(sec => {
+    sec.items.forEach(it => {
+      if (it.disabled) return;
+      total++;
+      if (data[sec.id] && data[sec.id][it.id] && data[sec.id][it.id].checked) checked++;
+    });
+  });
+  return { total, checked };
+}
+
+function updateProgress() {
+  const data = getTodayData();
+  const { total, checked } = countChecked(data);
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+  document.getElementById('progress-fg').style.strokeDashoffset = offset;
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-detail').textContent = `${checked} / ${total} 항목 완료`;
+}
+
+function renderChecklist() {
+  const data = getTodayData();
+  const container = document.getElementById('checklist-sections');
+  container.innerHTML = '';
+
+  getChecklistSchema().forEach(sec => {
+    const card = document.createElement('div');
+    card.className = 'section-card open';
+    const secData = data[sec.id] || {};
+    const secChecked = sec.items.filter(it => secData[it.id]?.checked).length;
+
+    card.innerHTML = `
+      <div class="section-header" onclick="toggleFoodTag(this.parentElement)">
+        <div class="section-title">
+          <span>${sec.icon}</span>
+          <span>${sec.title}</span>
+          <span class="badge ${sec.critical ? 'badge-critical' : 'badge-normal'}">${secChecked}/${sec.items.length}</span>
+        </div>
+        <span class="section-chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        ${sec.items.map(it => renderCheckItem(sec, it, secData[it.id] || { checked: false })).join('')}
+        ${sec.notice ? sec.notice.map(n => `<div class="section-notice"><span>${n.icon}</span><span>${n.text}</span></div>`).join('') : ''}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  updateProgress();
+  renderWarnings();
+  bindChecklistEvents();
+
+  // Date display
+  const d = new Date();
+  const opts = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+  const dateText = d.toLocaleDateString('ko-KR', opts);
+  const p = loadProfile();
+  let txHtml = '';
+  if (p.transplantDate) {
+    const tx = new Date(p.transplantDate + 'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    let y = now.getFullYear() - tx.getFullYear();
+    let m = now.getMonth() - tx.getMonth();
+    let dd = now.getDate() - tx.getDate();
+    if (dd < 0) { m--; dd += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+    if (m < 0) { y--; m += 12; }
+    const parts = [];
+    if (y > 0) parts.push(y + '년');
+    if (m > 0) parts.push(m + '개월');
+    parts.push(dd + '일');
+    txHtml = `<span style="font-size:11px;font-weight:500;color:var(--accent)">(이식 후 ${parts.join(' ')})</span>`;
+  }
+  document.getElementById('today-date').innerHTML = dateText + txHtml;
+}
+
+function renderCheckItem(sec, item, itemData) {
+  const checked = itemData.checked;
+  let inputsHtml = '';
+  if (item.hasTime) {
+    const tval = itemData.time || '';
+    inputsHtml = `<div class="check-input-row"><div class="input-group"><label>시간</label><input type="time" data-sec="${sec.id}" data-item="${item.id}" data-field="time" value="${tval}"></div></div>`;
+  }
+  if (item.hasInputs) {
+    inputsHtml = renderInputs(sec.id, item, itemData);
+  }
+
+  const isDisabled = item.disabled;
+  return `
+    <div class="check-item ${item.critical ? 'critical' : ''} ${isDisabled ? 'disabled' : ''}">
+      <div class="check-box ${checked && !isDisabled ? 'checked' : ''} ${isDisabled ? 'box-disabled' : ''}" data-sec="${sec.id}" data-item="${item.id}"></div>
+      <div class="check-content">
+        <div class="check-label ${checked && !isDisabled ? 'done' : ''} ${isDisabled ? 'label-disabled' : ''}" data-sec="${sec.id}" data-item="${item.id}">${item.label}</div>
+        ${item.sub ? `<div class="check-sub">${item.sub}</div>` : ''}
+        ${isDisabled ? '' : inputsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderInputs(secId, item, itemData) {
+  switch (item.inputType) {
+    case 'bp': return `
+      <div class="check-input-row">
+        <div class="input-group"><label>수축기</label><input type="number" data-sec="${secId}" data-item="${item.id}" data-field="systolic" value="${itemData.systolic||''}" placeholder="120" min="60" max="250"></div>
+        <div class="input-group"><label>이완기</label><input type="number" data-sec="${secId}" data-item="${item.id}" data-field="diastolic" value="${itemData.diastolic||''}" placeholder="80" min="30" max="200"></div>
+        <div class="input-group"><label>mmHg</label></div>
+      </div>`;
+    case 'glucose': return `
+      <div class="check-input-row">
+        <select data-sec="${secId}" data-item="${item.id}" data-field="timing">
+          <option value="">시점</option>
+          <option value="fasting" ${itemData.timing==='fasting'?'selected':''}>공복</option>
+          <option value="postmeal" ${itemData.timing==='postmeal'?'selected':''}>식후 2h</option>
+        </select>
+        <div class="input-group"><input type="number" data-sec="${secId}" data-item="${item.id}" data-field="value" value="${itemData.value||''}" placeholder="100" min="30" max="600"></div>
+        <div class="input-group"><label>mg/dL</label></div>
+      </div>`;
+    case 'temp': return `
+      <div class="check-input-row">
+        <div class="input-group"><label>체온</label><input type="number" step="0.1" data-sec="${secId}" data-item="${item.id}" data-field="value" value="${itemData.value||''}" placeholder="36.5" min="34" max="42"></div>
+        <div class="input-group"><label>&#8451;</label></div>
+      </div>`;
+    case 'weight': return `
+      <div class="check-input-row">
+        <div class="input-group"><input type="number" step="0.1" data-sec="${secId}" data-item="${item.id}" data-field="value" value="${itemData.value||''}" placeholder="65.0" min="20" max="200"></div>
+        <div class="input-group"><label>kg</label></div>
+      </div>`;
+    case 'urine': return `
+      <div class="chip-group">
+        <span class="chip-label">소변량</span>
+        <div class="chip-row" data-sec="${secId}" data-item="${item.id}" data-field="status">
+          <button class="chip chip-good ${itemData.status==='normal'?'chip-active':''}" data-value="normal">정상</button>
+          <button class="chip chip-warn ${itemData.status==='decreased'?'chip-active':''}" data-value="decreased">감소</button>
+          <button class="chip chip-danger ${itemData.status==='none'?'chip-active':''}" data-value="none">무뇨</button>
+        </div>
+      </div>
+      <div class="chip-group">
+        <span class="chip-label">소변색</span>
+        <div class="chip-row" data-sec="${secId}" data-item="${item.id}" data-field="color">
+          <button class="chip chip-good ${itemData.color==='clear'?'chip-active':''}" data-value="clear">맑음</button>
+          <button class="chip chip-good ${itemData.color==='yellow'?'chip-active':''}" data-value="yellow">노란색</button>
+          <button class="chip chip-warn ${itemData.color==='dark'?'chip-active':''}" data-value="dark">진한색</button>
+          <button class="chip chip-danger ${itemData.color==='bloody'?'chip-active':''}" data-value="bloody">혈뇨</button>
+          <button class="chip chip-warn ${itemData.color==='foamy'?'chip-active':''}" data-value="foamy">거품뇨</button>
+        </div>
+      </div>`;
+    case 'txSite': return `
+      <div class="chip-group">
+        <div class="chip-row" data-sec="${secId}" data-item="${item.id}" data-field="status">
+          <button class="chip chip-good ${itemData.status==='normal'?'chip-active':''}" data-value="normal">정상</button>
+          <button class="chip chip-danger ${itemData.status==='pain'?'chip-active':''}" data-value="pain">통증</button>
+          <button class="chip chip-warn ${itemData.status==='swelling'?'chip-active':''}" data-value="swelling">부종</button>
+        </div>
+      </div>`;
+    case 'minutes': return `
+      <div class="check-input-row">
+        <div class="input-group"><input type="number" data-sec="${secId}" data-item="${item.id}" data-field="minutes" value="${itemData.minutes||''}" placeholder="30" min="0" max="300"></div>
+        <div class="input-group"><label>분</label></div>
+      </div>`;
+    case 'hours': return `
+      <div class="check-input-row">
+        <div class="input-group"><input type="number" step="0.5" data-sec="${secId}" data-item="${item.id}" data-field="hours" value="${itemData.hours||''}" placeholder="7" min="0" max="24"></div>
+        <div class="input-group"><label>시간</label></div>
+      </div>`;
+    case 'liters': return `
+      <div class="check-input-row">
+        <div class="input-group"><input type="number" step="0.1" data-sec="${secId}" data-item="${item.id}" data-field="liters" value="${itemData.liters||''}" placeholder="1.5" min="0" max="10"></div>
+        <div class="input-group"><label>L</label></div>
+      </div>`;
+    case 'goodFood': return `
+      <div class="good-food-grid">
+        <div class="good-food-item">
+          <div class="good-food-tag" onclick="toggleFoodTag(this.parentElement)">단백질</div>
+          <div class="good-food-detail">두부, 흰살 생선(익힌 것), 닭가슴살, 계란 흰자</div>
+        </div>
+        <div class="good-food-item">
+          <div class="good-food-tag" onclick="toggleFoodTag(this.parentElement)">통곡물</div>
+          <div class="good-food-detail">현미, 귀리, 잡곡밥, 고구마(소량)</div>
+        </div>
+        <div class="good-food-item">
+          <div class="good-food-tag" onclick="toggleFoodTag(this.parentElement)">좋은 지방</div>
+          <div class="good-food-detail">올리브유, 들기름, 아보카도, 견과류(소량)</div>
+        </div>
+        <div class="good-food-item">
+          <div class="good-food-tag" onclick="toggleFoodTag(this.parentElement)">익힌 채소·과일</div>
+          <div class="good-food-detail">브로콜리, 양배추, 당근, 사과·배(익힌 것)</div>
+        </div>
+        <div class="good-food-item">
+          <div class="good-food-tag" onclick="toggleFoodTag(this.parentElement)">멸균 유제품</div>
+          <div class="good-food-detail">저온 살균 우유, 멸균 요거트</div>
+        </div>
+      </div>`;
+    case 'cautionFood': return `
+      <div class="good-food-grid">
+        <div class="caution-food-item">
+          <div class="caution-food-tag" onclick="toggleFoodTag(this.parentElement)">고염식</div>
+          <div class="caution-food-detail">라면, 국물류, 찌개, 젓갈, 장아찌, 햄, 소시지</div>
+        </div>
+        <div class="caution-food-item">
+          <div class="caution-food-tag" onclick="toggleFoodTag(this.parentElement)">고칼륨</div>
+          <div class="caution-food-detail">바나나, 오렌지, 감자, 시금치, 토마토</div>
+        </div>
+        <div class="caution-food-item">
+          <div class="caution-food-tag" onclick="toggleFoodTag(this.parentElement)">고인산</div>
+          <div class="caution-food-detail">탄산음료, 인스턴트, 가공식품, 유제품 과다</div>
+        </div>
+        <div class="caution-food-item">
+          <div class="caution-food-tag" onclick="toggleFoodTag(this.parentElement)">발효식품</div>
+          <div class="caution-food-detail">젓갈류, 김치 과다, 발효유(면역 저하기)</div>
+        </div>
+      </div>`;
+    default: return '';
+  }
+}
+
+function bindChecklistEvents() {
+  // Checkbox clicks
+  document.querySelectorAll('.check-box').forEach(box => {
+    box.addEventListener('click', () => {
+      const sec = box.dataset.sec, item = box.dataset.item;
+      const data = getTodayData();
+      if (!data[sec]) data[sec] = {};
+      if (!data[sec][item]) data[sec][item] = { checked: false };
+      data[sec][item].checked = !data[sec][item].checked;
+      saveDay(todayStr(), data);
+      box.classList.toggle('checked');
+      const label = box.parentElement.querySelector('.check-label');
+      if (label) label.classList.toggle('done');
+      updateProgress();
+      renderWarnings();
+      updateSectionBadges();
+    });
+  });
+  // Label clicks
+  document.querySelectorAll('.check-label').forEach(lbl => {
+    lbl.addEventListener('click', () => {
+      const box = lbl.closest('.check-item').querySelector('.check-box');
+      if (box) box.click();
+    });
+  });
+  // Input changes
+  document.querySelectorAll('.check-input-row input, .check-input-row select').forEach(inp => {
+    const handler = () => {
+      const sec = inp.dataset.sec, item = inp.dataset.item, field = inp.dataset.field;
+      const data = getTodayData();
+      if (!data[sec]) data[sec] = {};
+      if (!data[sec][item]) data[sec][item] = { checked: false };
+      const val = inp.type === 'number' ? (inp.value ? parseFloat(inp.value) : null) : inp.value;
+      data[sec][item][field] = val;
+      saveDay(todayStr(), data);
+      renderWarnings();
+    };
+    inp.addEventListener('change', handler);
+    inp.addEventListener('input', debounce(handler, 300));
+  });
+  // Chip clicks
+  document.querySelectorAll('.chip-row .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const row = chip.closest('.chip-row');
+      const sec = row.dataset.sec, item = row.dataset.item, field = row.dataset.field;
+      const value = chip.dataset.value;
+      const data = getTodayData();
+      if (!data[sec]) data[sec] = {};
+      if (!data[sec][item]) data[sec][item] = { checked: false };
+      data[sec][item][field] = value;
+      saveDay(todayStr(), data);
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
+      chip.classList.add('chip-active');
+      renderWarnings();
+    });
+  });
+}
+
+function updateSectionBadges() {
+  const data = getTodayData();
+  document.querySelectorAll('.section-card').forEach((card, i) => {
+    const sec = getChecklistSchema()[i];
+    const secData = data[sec.id] || {};
+    const checked = sec.items.filter(it => secData[it.id]?.checked).length;
+    const badge = card.querySelector('.badge');
+    if (badge) badge.textContent = `${checked}/${sec.items.length}`;
+  });
+}
+
+function toggleFoodTag(el) {
+  el.classList.toggle('open');
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+/* ========== Warnings ========== */
+function renderWarnings() {
+  const data = getTodayData();
+  const container = document.getElementById('warnings');
+  const warnings = [];
+
+  // Temperature
+  const temp = data.monitoring?.temp?.value;
+  if (temp && temp >= 38) {
+    warnings.push({ level: 'danger', msg: `체온 ${temp}&#8451; — 38도 이상입니다. 즉시 이식팀에 연락하세요!` });
+  }
+  // Urine
+  const urine = data.monitoring?.urine?.status;
+  if (urine === 'none') {
+    warnings.push({ level: 'danger', msg: '무뇨 상태입니다. 즉시 응급실 방문이 필요합니다!' });
+  } else if (urine === 'decreased') {
+    warnings.push({ level: 'warn', msg: '소변량이 감소했습니다. 변화를 주시하고 지속 시 이식팀에 연락하세요.' });
+  }
+  // Urine color
+  const urineColor = data.monitoring?.urine?.color;
+  if (urineColor === 'bloody') {
+    warnings.push({ level: 'danger', msg: '혈뇨가 관찰됩니다. 즉시 이식팀에 연락하세요!' });
+  } else if (urineColor === 'foamy') {
+    warnings.push({ level: 'warn', msg: '거품뇨가 관찰됩니다. 단백뇨 가능성이 있으니 이식팀에 보고하세요.' });
+  } else if (urineColor === 'dark') {
+    warnings.push({ level: 'warn', msg: '소변 색이 진합니다. 수분 섭취를 늘리고 경과를 관찰하세요.' });
+  }
+  // Transplant site
+  const txSite = data.monitoring?.txSite?.status;
+  if (txSite === 'pain') {
+    warnings.push({ level: 'danger', msg: '이식부위 통증이 있습니다. 이식팀에 연락하세요!' });
+  } else if (txSite === 'swelling') {
+    warnings.push({ level: 'warn', msg: '이식부위 부종이 있습니다. 경과를 관찰하고 이식팀에 보고하세요.' });
+  }
+  // Blood pressure
+  const sys = data.monitoring?.bp?.systolic;
+  const dia = data.monitoring?.bp?.diastolic;
+  if (sys && dia && (sys >= 130 || dia >= 80)) {
+    warnings.push({ level: 'warn', msg: `혈압 ${sys}/${dia} mmHg — 목표치(130/80)를 초과했습니다.` });
+  }
+  // Blood glucose
+  const glu = data.monitoring?.glucose;
+  if (glu?.value) {
+    const gVal = glu.value;
+    if (glu.timing === 'fasting' && gVal >= 130) {
+      warnings.push({ level: 'warn', msg: `공복 혈당 ${gVal} mg/dL — 목표치(70~130)를 초과했습니다. 당뇨 전문의 협진을 고려하세요.` });
+    } else if (glu.timing === 'postmeal' && gVal >= 180) {
+      warnings.push({ level: 'warn', msg: `식후 혈당 ${gVal} mg/dL — 목표치(180 미만)를 초과했습니다.` });
+    }
+    if (gVal <= 70) {
+      warnings.push({ level: 'danger', msg: `혈당 ${gVal} mg/dL — 저혈당 위험! 즉시 당분을 섭취하세요.` });
+    }
+  }
+
+  container.innerHTML = warnings.map(w =>
+    `<div class="warning-banner ${w.level}"><span class="icon">${w.level === 'danger' ? '&#9888;' : '&#9432;'}</span><span>${w.msg}</span></div>`
+  ).join('');
+}
+
+/* ========== Tab 2: Calendar ========== */
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const label = document.getElementById('cal-month-label');
+  label.textContent = `${calYear}년 ${calMonth + 1}월`;
+
+  const dayLabels = ['일','월','화','수','목','금','토'];
+  let html = dayLabels.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = todayStr();
+
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+  const apptDates = new Set(loadAppointments().map(a => a.date));
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const data = loadDay(ds);
+    const isToday = ds === today;
+    const isSelected = ds === calSelectedDate;
+    let dotHtml = '';
+    if (data) {
+      const { total, checked } = countChecked(data, ds);
+      const pct = total > 0 ? checked / total : 0;
+      if (pct >= 1) dotHtml = '<div class="dot dot-complete"></div>';
+      else if (pct > 0) dotHtml = '<div class="dot dot-partial"></div>';
+      else dotHtml = '<div class="dot dot-missed"></div>';
+    }
+    if (apptDates.has(ds)) dotHtml += '<div class="dot dot-appt"></div>';
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectCalDay('${ds}')">${d}${dotHtml}</div>`;
+  }
+
+  grid.innerHTML = html;
+  if (calSelectedDate) renderCalDetail(calSelectedDate);
+}
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  calSelectedDate = null;
+  document.getElementById('cal-detail').style.display = 'none';
+  renderCalendar();
+}
+
+function selectCalDay(ds) {
+  calSelectedDate = ds;
+  renderCalendar();
+  renderCalDetail(ds);
+}
+
+function renderCalDetail(ds) {
+  const detail = document.getElementById('cal-detail');
+  const data = loadDay(ds);
+
+  // 예약 정보 조회
+  const dayAppts = loadAppointments().filter(a => a.date === ds);
+  const apptHtml = dayAppts.length ? `
+    <div style="font-size:12px;color:var(--accent2);font-weight:600;margin:12px 0 4px">🏥 진료 예약</div>
+    ${dayAppts.map(a => `<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text)">
+      <span style="font-weight:600">${a.hospital}</span>
+      <span style="color:var(--text-dim);margin-left:6px">${a.type}</span>
+    </div>`).join('')}` : '';
+
+  if (!data) {
+    detail.innerHTML = `<h3>${formatDateKR(ds)}</h3>${apptHtml || '<p style="font-size:13px;color:var(--text-dim)">기록 없음</p>'}`;
+    detail.style.display = 'block';
+    return;
+  }
+
+  let html = `<h3>${formatDateKR(ds)}</h3>${apptHtml}`;
+  getChecklistSchema(ds).forEach(sec => {
+    html += `<div style="font-size:12px;color:var(--text-dim);font-weight:600;margin:12px 0 4px">${sec.icon} ${sec.title}</div>`;
+    sec.items.forEach(it => {
+      const itemData = data[sec.id]?.[it.id] || { checked: false };
+      let statusHtml = itemData.checked
+        ? '<span class="cal-detail-status status-done">완료</span>'
+        : '<span class="cal-detail-status status-missed">미완료</span>';
+
+      // Show values
+      let valueStr = '';
+      if (it.inputType === 'bp' && itemData.systolic && itemData.diastolic) {
+        valueStr = `${itemData.systolic}/${itemData.diastolic} mmHg`;
+      } else if (it.inputType === 'glucose' && itemData.value) {
+        const tLabel = itemData.timing === 'fasting' ? '공복' : itemData.timing === 'postmeal' ? '식후' : '';
+        valueStr = `${tLabel} ${itemData.value} mg/dL`;
+      } else if (it.inputType === 'weight' && itemData.value) {
+        valueStr = `${itemData.value} kg`;
+      } else if (it.inputType === 'temp' && itemData.value) {
+        valueStr = `${itemData.value}\u2103`;
+      } else if (it.inputType === 'urine' && (itemData.status || itemData.color)) {
+        const vol = itemData.status === 'normal' ? '정상' : itemData.status === 'decreased' ? '감소' : itemData.status === 'none' ? '무뇨' : '';
+        const col = {clear:'맑음',yellow:'노란색',dark:'진한색',bloody:'혈뇨',foamy:'거품뇨'}[itemData.color] || '';
+        valueStr = [vol, col].filter(Boolean).join(' / ');
+      } else if (it.inputType === 'txSite' && itemData.status) {
+        valueStr = itemData.status === 'normal' ? '정상' : itemData.status === 'pain' ? '통증' : '부종';
+      } else if (it.inputType === 'minutes' && itemData.minutes) {
+        valueStr = `${itemData.minutes}분`;
+      } else if (it.inputType === 'hours' && itemData.hours) {
+        valueStr = `${itemData.hours}시간`;
+      } else if (it.inputType === 'liters' && itemData.liters) {
+        valueStr = `${itemData.liters}L`;
+      }
+      if (valueStr) statusHtml = `<span class="cal-detail-status status-value">${valueStr}</span>`;
+
+      html += `<div class="cal-detail-item"><span>${it.label}</span>${statusHtml}</div>`;
+    });
+  });
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+}
+
+function formatDateKR(ds) {
+  const d = new Date(ds + 'T00:00:00');
+  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+}
+
+/* ========== Tab 3: Statistics ========== */
+function setStatRange(range) {
+  statRange = range;
+  document.querySelectorAll('.stat-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === (range === 'week' ? '주간' : '월간'));
+  });
+  renderStats();
+}
+
+function renderStats() {
+  const container = document.getElementById('stats-content');
+  const days = statRange === 'week' ? 7 : 30;
+  const dateList = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    dateList.push(dateStr(d));
+  }
+
+  const records = dateList.map(ds => ({ date: ds, data: loadDay(ds) }));
+  const validRecords = records.filter(r => r.data);
+
+  // Compute stats
+  let totalAdherence = 0, bpSysSum = 0, bpDiaSum = 0, bpCount = 0;
+  let exSum = 0, sleepSum = 0, waterSum = 0;
+  let exCount = 0, sleepCount = 0, waterCount = 0;
+  let streak = 0, currentStreak = true;
+
+  // Streak: count consecutive days from today backward with all meds checked
+  for (let i = records.length - 1; i >= 0; i--) {
+    const r = records[i];
+    if (!r.data || !currentStreak) break;
+    const medSec = getChecklistSchema()[0];
+    const allMed = medSec.items.filter(it => it.critical).every(it => r.data.medication?.[it.id]?.checked);
+    if (allMed) streak++;
+    else currentStreak = false;
+  }
+
+  validRecords.forEach(r => {
+    const { total, checked } = countChecked(r.data, r.date);
+    totalAdherence += total > 0 ? checked / total : 0;
+
+    const bp = r.data.monitoring?.bp;
+    if (bp?.systolic && bp?.diastolic) { bpSysSum += bp.systolic; bpDiaSum += bp.diastolic; bpCount++; }
+
+    const ex = r.data.lifestyle?.exercise;
+    if (ex?.minutes) { exSum += ex.minutes; exCount++; }
+
+    const sl = r.data.lifestyle?.sleep;
+    if (sl?.hours) { sleepSum += sl.hours; sleepCount++; }
+
+    const wa = r.data.diet?.water;
+    if (wa?.liters) { waterSum += wa.liters; waterCount++; }
+  });
+
+  const avgAdherence = validRecords.length > 0 ? Math.round((totalAdherence / validRecords.length) * 100) : 0;
+  const avgBpSys = bpCount > 0 ? Math.round(bpSysSum / bpCount) : '-';
+  const avgBpDia = bpCount > 0 ? Math.round(bpDiaSum / bpCount) : '-';
+  const avgEx = exCount > 0 ? Math.round(exSum / exCount) : 0;
+  const totalEx = Math.round(exSum);
+  const avgSleep = sleepCount > 0 ? (sleepSum / sleepCount).toFixed(1) : '-';
+  const avgWater = waterCount > 0 ? (waterSum / waterCount).toFixed(1) : '-';
+
+  const rangeLabel = statRange === 'week' ? '주간' : '월간';
+
+  let html = `
+    <div class="streak-card">
+      <div class="streak-value">${streak}</div>
+      <div class="streak-label">연속 약물 복용일</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <h3>${rangeLabel} 완료율</h3>
+        <div class="stat-value">${avgAdherence}<span class="stat-unit">%</span></div>
+        <div class="stat-sub">기록일 ${validRecords.length}일 기준</div>
+      </div>
+      <div class="stat-card">
+        <h3>평균 혈압</h3>
+        <div class="stat-value" style="font-size:22px">${avgBpSys}/${avgBpDia}</div>
+        <div class="stat-sub">mmHg (${bpCount}일 기록)</div>
+      </div>
+      <div class="stat-card">
+        <h3>총 운동시간</h3>
+        <div class="stat-value">${totalEx}<span class="stat-unit">분</span></div>
+        <div class="stat-sub">일평균 ${avgEx}분</div>
+      </div>
+      <div class="stat-card">
+        <h3>평균 수면</h3>
+        <div class="stat-value">${avgSleep}<span class="stat-unit">h</span></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <h3>평균 수분 섭취</h3>
+      <div class="stat-value">${avgWater}<span class="stat-unit">L/일</span></div>
+    </div>
+  `;
+
+  // Adherence bar chart
+  html += renderBarChart('일별 완료율 (%)', records.map(r => {
+    if (!r.data) return { label: r.date.slice(8), value: 0 };
+    const { total, checked } = countChecked(r.data, r.date);
+    return { label: r.date.slice(8), value: total > 0 ? Math.round((checked / total) * 100) : 0 };
+  }), 100);
+
+  // BP chart
+  if (bpCount > 0) {
+    html += renderBPChart('혈압 추이 (mmHg)', records.map(r => {
+      const bp = r.data?.monitoring?.bp;
+      return {
+        label: r.date.slice(8),
+        sys: bp?.systolic || null,
+        dia: bp?.diastolic || null
+      };
+    }));
+  }
+
+  container.innerHTML = html;
+}
+
+function renderBarChart(title, items, maxVal) {
+  const w = 400, h = 140, padL = 4, padR = 4, padT = 8, padB = 20;
+  const barW = Math.max(4, Math.min(16, (w - padL - padR) / items.length - 2));
+  const chartH = h - padT - padB;
+  const step = (w - padL - padR) / items.length;
+
+  let bars = '';
+  items.forEach((item, i) => {
+    const x = padL + i * step + (step - barW) / 2;
+    const barH = maxVal > 0 ? (item.value / maxVal) * chartH : 0;
+    const y = padT + chartH - barH;
+    const cls = item.value >= 80 ? 'chart-bar' : item.value >= 50 ? 'chart-bar-warn' : 'chart-bar-danger';
+    bars += `<rect class="${cls}" x="${x}" y="${y}" width="${barW}" height="${Math.max(barH, 1)}" rx="2"/>`;
+    if (items.length <= 14 || i % 3 === 0) {
+      bars += `<text class="chart-label" x="${x + barW/2}" y="${h - 4}">${item.label}</text>`;
+    }
+  });
+
+  return `<div class="chart-container"><h3>${title}</h3><svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${bars}</svg></div>`;
+}
+
+function renderBPChart(title, items) {
+  const w = 400, h = 160, padL = 30, padR = 4, padT = 8, padB = 20;
+  const chartW = w - padL - padR;
+  const chartH = h - padT - padB;
+  const minBP = 50, maxBP = 200;
+
+  function yPos(val) { return padT + chartH - ((val - minBP) / (maxBP - minBP)) * chartH; }
+  const step = chartW / Math.max(items.length - 1, 1);
+
+  // Guide lines
+  let svg = `<line x1="${padL}" y1="${yPos(130)}" x2="${w-padR}" y2="${yPos(130)}" stroke="rgba(255,152,0,0.3)" stroke-dasharray="4"/>`;
+  svg += `<text x="${padL-4}" y="${yPos(130)+4}" fill="var(--warning)" font-size="8" text-anchor="end">130</text>`;
+  svg += `<text x="${padL-4}" y="${yPos(80)+4}" fill="var(--warning)" font-size="8" text-anchor="end">80</text>`;
+  svg += `<line x1="${padL}" y1="${yPos(80)}" x2="${w-padR}" y2="${yPos(80)}" stroke="rgba(255,152,0,0.3)" stroke-dasharray="4"/>`;
+
+  // Lines and dots
+  let sysPath = '', diaPath = '';
+  items.forEach((item, i) => {
+    const x = padL + i * step;
+    if (item.sys) {
+      const y = yPos(item.sys);
+      sysPath += (sysPath ? 'L' : 'M') + `${x},${y}`;
+      svg += `<circle cx="${x}" cy="${y}" r="3" fill="var(--danger)"/>`;
+    }
+    if (item.dia) {
+      const y = yPos(item.dia);
+      diaPath += (diaPath ? 'L' : 'M') + `${x},${y}`;
+      svg += `<circle cx="${x}" cy="${y}" r="3" fill="var(--accent)"/>`;
+    }
+    if (items.length <= 14 || i % 3 === 0) {
+      svg += `<text class="chart-label" x="${x}" y="${h - 4}">${item.label}</text>`;
+    }
+  });
+  if (sysPath) svg += `<path d="${sysPath}" fill="none" stroke="var(--danger)" stroke-width="1.5"/>`;
+  if (diaPath) svg += `<path d="${diaPath}" fill="none" stroke="var(--accent)" stroke-width="1.5"/>`;
+
+  // Legend
+  svg += `<circle cx="${padL+10}" cy="${padT}" r="3" fill="var(--danger)"/><text x="${padL+18}" y="${padT+4}" fill="var(--text-dim)" font-size="9">수축기</text>`;
+  svg += `<circle cx="${padL+60}" cy="${padT}" r="3" fill="var(--accent)"/><text x="${padL+68}" y="${padT+4}" fill="var(--text-dim)" font-size="9">이완기</text>`;
+
+  return `<div class="chart-container"><h3>${title}</h3><svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${svg}</svg></div>`;
+}
+
+/* ========== Tab 4: Settings ========== */
+function loadSettings() {
+  const p = loadProfile();
+  document.getElementById('set-name').value = p.name || '';
+  document.getElementById('set-txdate').value = p.transplantDate || '';
+  renderMedSettings();
+  renderApptList();
+}
+
+function saveProfile() {
+  const p = loadProfile();
+  p.name = document.getElementById('set-name').value;
+  p.transplantDate = document.getElementById('set-txdate').value;
+  saveProfileData(p);
+}
+
+function renderMedSettings() {
+  const p = loadProfile();
+  const slots = p.medSlots || DEFAULT_MED_SLOTS;
+  const container = document.getElementById('med-settings');
+  let html = '<div class="setting-group-title">약물 복용 설정</div>';
+
+  ['am', 'pm', 'ev'].forEach(period => {
+    const label = TIME_LABELS[period];
+    const list = slots[period] || [];
+    html += `<div class="med-period-group">
+      <div class="med-period-header">
+        <span class="med-period-label">${label} (${list.length}회)</span>
+        <button class="med-add-btn" onclick="addMedSlot('${period}')">+ 추가</button>
+      </div>`;
+    list.forEach((slot, i) => {
+      html += `<div class="med-slot-item">
+        <input type="text" class="med-name-input" value="${slot.name}" placeholder="약물명"
+          onchange="updateMedSlot('${period}',${i},'name',this.value)">
+        <input type="time" value="${slot.time}"
+          onchange="updateMedSlot('${period}',${i},'time',this.value)">
+        <button class="med-del-btn" onclick="removeMedSlot('${period}',${i})">&#10005;</button>
+      </div>`;
+    });
+    if (list.length === 0) {
+      html += '<div class="med-slot-empty">복용 약물 없음</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function addMedSlot(period) {
+  const p = loadProfile();
+  if (!p.medSlots[period]) p.medSlots[period] = [];
+  if (p.medSlots[period].length >= 5) return;
+  const defaultTime = period === 'am' ? '08:00' : period === 'pm' ? '13:00' : '20:00';
+  p.medSlots[period].push({ name: '새 약물', time: defaultTime });
+  saveProfileData(p);
+  renderMedSettings();
+  renderChecklist();
+}
+
+function removeMedSlot(period, idx) {
+  const p = loadProfile();
+  p.medSlots[period].splice(idx, 1);
+  saveProfileData(p);
+  renderMedSettings();
+  renderChecklist();
+}
+
+function updateMedSlot(period, idx, field, value) {
+  const p = loadProfile();
+  p.medSlots[period][idx][field] = value;
+  saveProfileData(p);
+  renderChecklist();
+}
+
+function exportData() {
+  const allData = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith(STORAGE_PREFIX)) {
+      allData[k] = JSON.parse(localStorage.getItem(k));
+    }
+  }
+  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kidney-health-data-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const fileInput = document.getElementById('import-file');
+  if (!fileInput.files.length) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      Object.entries(data).forEach(([k, v]) => {
+        if (k.startsWith(STORAGE_PREFIX)) {
+          localStorage.setItem(k, JSON.stringify(v));
+        }
+      });
+      hideModal('import');
+      renderChecklist();
+    } catch (err) {
+      alert('유효하지 않은 파일입니다.');
+    }
+  };
+  reader.readAsText(fileInput.files[0]);
+}
+
+function showModal(id) { document.getElementById('modal-' + id).classList.add('show'); }
+function hideModal(id) { document.getElementById('modal-' + id).classList.remove('show'); }
+
+function resetAllData() {
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith(STORAGE_PREFIX)) keysToRemove.push(k);
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+  hideModal('reset');
+  renderChecklist();
+  loadSettings();
+}
+
+/* ========== 진료 예약 ========== */
+function loadAppointments() {
+  const raw = localStorage.getItem(STORAGE_PREFIX + 'appointments');
+  return raw ? JSON.parse(raw) : [];
+}
+function saveAppointments(list) {
+  localStorage.setItem(STORAGE_PREFIX + 'appointments', JSON.stringify(list));
+}
+function addAppointment() {
+  const date = document.getElementById('appt-date').value;
+  const type = document.getElementById('appt-type').value;
+  const hospital = document.getElementById('appt-hospital').value.trim();
+  if (!date) { alert('날짜를 선택해주세요.'); return; }
+  const list = loadAppointments();
+  list.push({ id: Date.now(), date, type, hospital: hospital || '병원' });
+  list.sort((a, b) => a.date.localeCompare(b.date));
+  saveAppointments(list);
+  document.getElementById('appt-date').value = '';
+  document.getElementById('appt-hospital').value = '';
+  renderApptList();
+  renderApptBanner();
+}
+function deleteAppointment(id) {
+  const list = loadAppointments().filter(a => a.id !== id);
+  saveAppointments(list);
+  renderApptList();
+  renderApptBanner();
+}
+function apptDday(dateStr) {
+  const today = todayStr();
+  if (dateStr === today) return { label: 'D-day', cls: 'today' };
+  const diff = Math.ceil((new Date(dateStr) - new Date(today)) / 86400000);
+  if (diff < 0) return { label: `D+${Math.abs(diff)}`, cls: 'past' };
+  return { label: `D-${diff}`, cls: '' };
+}
+const DAY_KR = ['일','월','화','수','목','금','토'];
+function apptDateDisp(dateStr, short = false) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = DAY_KR[d.getDay()];
+  const base = dateStr.replace(/-/g, '.').slice(short ? 2 : 0);
+  return `${base}(${day})`;
+}
+function renderApptBanner() {
+  const el = document.getElementById('appt-banner');
+  if (!el) return;
+  const today = todayStr();
+  const upcoming = loadAppointments()
+    .filter(a => a.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (!upcoming.length) { el.innerHTML = ''; return; }
+  const next = upcoming[0];
+  const { label, cls } = apptDday(next.date);
+  const dateDisp = apptDateDisp(next.date, true);
+  el.innerHTML = `<div class="appt-banner ${cls === 'today' ? 'appt-today' : ''}" onclick="switchTab('calendar')">
+    <div class="appt-dday">${label}<span>다음 진료</span></div>
+    <div class="appt-info">
+      <div class="appt-info-title">${next.hospital} · ${next.type}</div>
+      <div class="appt-info-sub">${dateDisp}${upcoming.length > 1 ? ` 외 ${upcoming.length - 1}건 예정` : ''}</div>
+    </div>
+  </div>`;
+}
+function renderApptList() {
+  const el = document.getElementById('appt-list');
+  if (!el) return;
+  const today = todayStr();
+  const list = loadAppointments();
+  if (!list.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:16px">등록된 예약이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = list.map(a => {
+    const { label, cls } = apptDday(a.date);
+    const dateDisp = apptDateDisp(a.date);
+    return `<div class="appt-item">
+      <div class="appt-item-dday ${cls}">${label}</div>
+      <div class="appt-item-info">
+        <div class="appt-item-title">${a.hospital} · ${a.type}</div>
+        <div class="appt-item-sub">${dateDisp}</div>
+      </div>
+      <button class="appt-del-btn" onclick="deleteAppointment(${a.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ========== Init ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  renderChecklist();
+  renderApptBanner();
+  // PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  }
+});
+</script>
+</body>
+</html>
